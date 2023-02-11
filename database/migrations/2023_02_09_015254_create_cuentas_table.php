@@ -21,8 +21,8 @@ class CreateCuentasTable extends Migration
                 ->on('users')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
-            $table->integer('num_cuenta')->unique();
-            $table->string('tipo');
+            $table->bigInteger('num_cuenta')->unique();
+            $table->enum('tipo', ["corriente", "ahorros"]);
             $table->float('saldo')->default(0);
             $table->timestamps();
             $table->softDeletes();

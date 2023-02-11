@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\CuentaController;
 use App\Http\Controllers\TransaccionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -21,19 +22,19 @@ use Illuminate\Support\Facades\Route;
 // });
 
 //Users routes
-Route::get('/user', [UserController::class, 'index']);
+Route::get('/users', [UserController::class, 'index']);
 Route::post('/user', [UserController::class, 'store']);
 Route::put('/user/{id}', [UserController::class, 'update']);
 Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
 //Cuenta routes
-Route::get('/cuenta', [CuentaController::class, 'index']);
+Route::get('/cuentas', [CuentaController::class, 'index']);
 Route::post('/cuenta', [CuentaController::class, 'store']);
 Route::put('/cuenta/{id}', [CuentaController::class, 'update']);
 Route::delete('/cuenta/{id}', [CuentaController::class, 'destroy']);
 
 //Transacciones routes
-Route::get('/transaccion', [TransaccionController::class, 'index']);
+Route::get('/transacciones', [TransaccionController::class, 'index']);
 Route::post('/transaccion', [TransaccionController::class, 'store']);
 Route::put('/transaccion/{id}', [TransaccionController::class, 'update']);
 Route::delete('/transaccion/{id}', [TransaccionController::class, 'destroy']);

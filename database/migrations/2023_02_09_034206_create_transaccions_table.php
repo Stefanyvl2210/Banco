@@ -22,6 +22,7 @@ class CreateTransaccionsTable extends Migration
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
             $table->integer('num_transaccion')->unique();
+            $table->enum('tipo', ["deposito", "retiro", "transferencia"]);
             $table->float('cantidad');
             $table->dateTime('fecha')->default(date("Y-m-d H:i:s"));
             $table->timestamps();

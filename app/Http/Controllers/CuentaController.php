@@ -26,12 +26,6 @@ class CuentaController extends Controller
     public function store(Request $request)
     {
         //
-        // while() {
-        //     $num = 1231245;
-        //     $cuenta = Cuenta::where('cuenta',$num)->first;
-        //     if ()
-        // }
-
     }
 
     /**
