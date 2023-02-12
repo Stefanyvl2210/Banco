@@ -48,7 +48,6 @@ class TransaccionController extends Controller
         }
 
         if (!strcmp($data['tipo'], 'transferencia')) {
-
             return $this->storeUserTransaction($data);
         }
     }
@@ -71,8 +70,115 @@ class TransaccionController extends Controller
      * @param  \App\Models\Transaccion  $transaccion
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Transaccion $transaccion)
+    public function deposit(Request $request, Transaccion $transaccion)
     {
+        $data = $request->all();
+
+        $validator = Validator::make($data, [
+            'num_cuenta' => 'required|numeric',
+            'tipo_cuenta' => 'required|string',
+            'cantidad' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'messages' => $validator->errors()->all(),
+                'error_code' => 422
+            ], 422);
+        }
+
+        try {
+            $user_account = Cuenta::where('num_cuenta', $data['num_cuenta'])->first();
+
+            if (!isset($user_account->num_cuenta)) {
+                return response()->json([
+                    'messages' => "Cuenta invalida",
+                    'error_code' => 422
+                ], 422);
+            }
+            if ($data['tipo_cuenta'] !== $user_account->tipo) {
+                return response()->json([
+                    'messages' => "Tipo de cuenta invalida",
+                    'error_code' => 422
+                ], 422);
+            }
+            $user_account->update(['saldo'=>($user_account->saldo + $data['cantidad'])]);
+            do {
+                $transNumber = mt_rand(100000,999999);
+                $accountExists = Transaccion::where('num_transaccion', $transNumber)->count();
+            } while($accountExists);
+            $deposit =  [
+                'cuenta_id' => $user_account->id,
+                'num_transaccion' => $transNumber,
+                'tipo' => 'deposito',
+                'cantidad' => $data['cantidad']
+            ];
+            Transaccion::create($deposit);
+            return response()->json([
+                'message' => 'Deposito exitoso',
+                'data' => [
+                    'Deposito' => $deposit,
+                    'Saldo actual' => $user_account->saldo
+                ]
+            ], 200);
+        } catch (\Throwable $e) {
+            return response($e, 500);
+        }
+
+    }
+
+    public function withdrawal(Request $request, Transaccion $transaccion)
+    {
+        $data = $request->all();
+
+        $validator = Validator::make($data, [
+            'num_cuenta' => 'required|numeric',
+            'tipo_cuenta' => 'required|string',
+            'cantidad' => 'required|numeric',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'messages' => $validator->errors()->all(),
+                'error_code' => 422
+            ], 422);
+        }
+
+        try {
+            $user_account = Cuenta::where('num_cuenta', $data['num_cuenta'])->first();
+
+            if (!isset($user_account->num_cuenta)) {
+                return response()->json([
+                    'messages' => "Cuenta invalida",
+                    'error_code' => 422
+                ], 422);
+            }
+            if ($data['tipo_cuenta'] !== $user_account->tipo) {
+                return response()->json([
+                    'messages' => "Tipo de cuenta invalida",
+                    'error_code' => 422
+                ], 422);
+            }
+            $user_account->update(['saldo'=>($user_account->saldo - $data['cantidad'])]);
+            do {
+                $transNumber = mt_rand(100000,999999);
+                $accountExists = Transaccion::where('num_transaccion', $transNumber)->count();
+            } while($accountExists);
+            $withdrawal =  [
+                'cuenta_id' => $user_account->id,
+                'num_transaccion' => $transNumber,
+                'tipo' => 'retiro',
+                'cantidad' => $data['cantidad']
+            ];
+            Transaccion::create($withdrawal);
+            return response()->json([
+                'message' => 'Retiro exitoso',
+                'data' => [
+                    'Retiro' => $withdrawal,
+                    'Saldo actual' => $user_account->saldo
+                ]
+            ], 200);
+        } catch (\Throwable $e) {
+            return response($e, 500);
+        }
     }
 
     /**
