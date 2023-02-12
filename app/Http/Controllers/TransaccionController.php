@@ -11,6 +11,12 @@ use Illuminate\Support\Facades\Validator;
 
 class TransaccionController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
+
     /**
      * Display a listing of the resource.
      *
@@ -32,7 +38,8 @@ class TransaccionController extends Controller
         $data = $request->all();
 
         $validator = Validator::make($data, [
-            'num_cuenta' => 'required|numeric',
+            'num_cuenta_receptora' => 'required|numeric',
+            'num_cuenta_emisora' => 'required|numeric',
             'cantidad' => 'required|numeric',
             'tipo' => 'required|string',
             'tipo_cuenta' => 'required|string',
@@ -44,11 +51,6 @@ class TransaccionController extends Controller
                 'error_code' => 422
             ], 422);
         }
-
-        return response()->json([
-            'messages' => auth(),
-
-        ], 422);
 
         if (!strcmp($data['tipo'], 'transferencia')) {
 
@@ -97,7 +99,16 @@ class TransaccionController extends Controller
      */
     public function storeUserTransaction($data)
     {
-        $account_to_transfer = Cuenta::where('num_cuenta', $data['num_cuenta'])->first();
+        $account_to_transfer = Cuenta::where('num_cuenta', $data['num_cuenta_receptora'])->first();
+
+        $user_account = Cuenta::where('num_cuenta', $data['num_cuenta_emisora'])->first();
+
+        if (!$user_account) {
+            return response()->json([
+                'messages' => "Cuenta no encontrada",
+                'error_code' => 422
+            ], 422);
+        }
 
         if (!$account_to_transfer) {
             return response()->json([
@@ -108,7 +119,21 @@ class TransaccionController extends Controller
 
         if ($data['tipo_cuenta'] !== $account_to_transfer->tipo) {
             return response()->json([
-                'messages' => "Tipo de uenta invalida",
+                'messages' => "Tipo de cuenta invalida",
+                'error_code' => 422
+            ], 422);
+        }
+
+        if ($data['cantidad'] < 1) {
+            return response()->json([
+                'messages' => "El monto debe ser mayor a 0",
+                'error_code' => 422
+            ], 422);
+        }
+
+        if ($user_account->saldo < $data['cantidad']) {
+            return response()->json([
+                'messages' => "Saldo insuficiente. " . "Saldo actual: " . $user_account->saldo,
                 'error_code' => 422
             ], 422);
         }
@@ -122,12 +147,18 @@ class TransaccionController extends Controller
 
         $create_transaction = Transaccion::create($new_transaction);
 
-        $user_amount = $account_to_transfer->saldo;
-        $account_to_transfer->update(['saldo' => ($user_amount + $data['cantidad'])]);
+        $transfer_amount = $account_to_transfer->saldo;
+        $user_amount = $user_account->saldo;
+
+        $account_to_transfer->update(['saldo' => ($transfer_amount + $data['cantidad'])]);
+        $user_account->update(['saldo' => ($user_amount - $data['cantidad'])]);
 
         return response()->json([
             'message' => 'Transferencia exitosa',
-            'data' => $new_transaction
+            'data' => [
+                'Transferencia' => $new_transaction,
+                'Saldo actual' => $user_account->saldo
+            ]
         ], 200);
     }
 }
