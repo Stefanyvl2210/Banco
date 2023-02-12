@@ -1,9 +1,9 @@
 <?php
- 
+
 use App\Http\Controllers\CuentaController;
 use App\Http\Controllers\TransaccionController;
-use App\Http\Controllers\UserController; 
-use App\Http\Controllers\Auth\AuthenticateUserController; 
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\Auth\AuthenticateUserController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -41,5 +41,7 @@ Route::delete('/cuenta/{id}', [CuentaController::class, 'destroy']);
 //Transacciones routes
 Route::get('/transacciones', [TransaccionController::class, 'index']);
 Route::post('/transaccion', [TransaccionController::class, 'store']);
+Route::put('/deposit', [TransaccionController::class, 'deposit']);
+Route::put('/withdrawal', [TransaccionController::class, 'withdrawal']);
 Route::put('/transaccion/{id}', [TransaccionController::class, 'update']);
 Route::delete('/transaccion/{id}', [TransaccionController::class, 'destroy']);
