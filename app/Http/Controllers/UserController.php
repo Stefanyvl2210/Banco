@@ -78,7 +78,8 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Usuario creado con exito',
-            'data' => $response
+            'data' => $response,
+            'token' => $newUser->createToken("API TOKEN")->plainTextToken
         ], 200);
     }
 

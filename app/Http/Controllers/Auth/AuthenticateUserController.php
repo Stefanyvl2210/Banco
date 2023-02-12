@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
@@ -42,9 +43,12 @@ class AuthenticateUserController extends Controller
             ], 200);
         }
 
+        $user = User::where('email', $request->email)->first();
+
         return response()->json([
             'message' => 'Usuario logeado',
-            'data' => auth()->user()
+            'data' => auth()->user(),
+            'token' => $user->createToken("API TOKEN")->plainTextToken
         ], 200);
     }
 }
