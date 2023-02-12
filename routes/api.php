@@ -1,8 +1,9 @@
 <?php
-
+ 
 use App\Http\Controllers\CuentaController;
 use App\Http\Controllers\TransaccionController;
-use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserController; 
+use App\Http\Controllers\Auth\AuthenticateUserController; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,10 @@ use Illuminate\Support\Facades\Route;
 // Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
 //     return $request->user();
 // });
+
+// Auth router
+Route::post('/login', [AuthenticateUserController::class, 'store']);
+
 
 //Users routes
 Route::get('/users', [UserController::class, 'index']);
