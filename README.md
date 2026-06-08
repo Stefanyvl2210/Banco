@@ -4,7 +4,7 @@ Basic banking API built with Laravel 8 and Laravel Sanctum. It supports user reg
 
 ## Requirements
 
-- PHP 7.3 or higher compatible with Laravel 8. PHP 8.2 is recommended for this project lock file.
+- PHP 8.2. The deploy target is pinned to PHP 8.2 because the current Laravel 8 lock file includes dependencies that do not support PHP 8.3+.
 - Composer.
 - MySQL/MariaDB for local development.
 - Common Laravel PHP extensions: `openssl`, `pdo`, `pdo_mysql`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `fileinfo`, `zip`, and `bcmath` if available.
