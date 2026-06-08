@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Http\Requests\Auth\LoginRequest;
+use App\Http\Resources\UserResource;
 use App\Http\Controllers\Controller;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Validator;
 
 class AuthenticateUserController extends Controller
 {
@@ -13,42 +13,47 @@ class AuthenticateUserController extends Controller
      * Handle an incoming authentication request.
      *
      * @param  \App\Http\Requests\Auth\LoginRequest  $request
-     * @return \Illuminate\Http\RedirectResponse
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(LoginRequest $request)
     {
-
-        $data = $request->all();
-        // $request->authenticate();
-
-        // $request->session()->regenerate();
-
-        // return redirect()->intended(RouteServiceProvider::HOME);
-
-        $validator = Validator::make($data, [
-            'email' => 'required|email',
-            "password" => 'required'
-        ]);
-
-        if ($validator->fails()) {
+        if (!auth()->attempt($request->only('email', 'password'), $request->boolean('remember'))) {
             return response()->json([
-                'messages' => $validator->errors()->all(),
-                'error_code' => 422
-            ], 422);
+                'message' => 'Invalid credentials',
+            ], 401);
         }
 
-        if (!auth()->attempt($request->only('email', 'password'), $request->remember)) {
-            return response()->json([
-                'message' => 'Credenciales invalidas',
-            ], 200);
-        }
-
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $request->email)->with('accounts')->first();
 
         return response()->json([
-            'message' => 'Usuario logeado',
-            'data' => auth()->user(),
-            'token' => $user->createToken("API TOKEN")->plainTextToken
+            'message' => 'User logged in',
+            'data' => new UserResource($user),
+            'token' => $user->createToken('API TOKEN')->plainTextToken,
+        ], 200);
+    }
+
+    /* Get the authenticated user's information.
+     *
+     * @return \Illuminate\Http\JsonResponse
+    */
+    public function me()
+    {
+        return response()->json([
+            'data' => new UserResource(auth()->user()->load('accounts')),
+        ], 200);
+    }
+
+    /**
+     * Handle an incoming logout request.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function destroy()
+    {
+        auth()->user()->currentAccessToken()->delete();
+
+        return response()->json([
+            'message' => 'Session closed',
         ], 200);
     }
 }

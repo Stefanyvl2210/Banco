@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -22,7 +21,8 @@ class User extends Authenticatable
         'last_name',
         'email',
         'password',
-        'telefono'
+        'phone',
+        'role',
     ];
 
     /**
@@ -44,12 +44,21 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    /**
+     * Check if the user has an admin role.
+     *
+     * @return bool
+     */
+    public function isAdmin()
+    {
+        return $this->role === 'admin';
+    }
 
     /**
      * Get accounts
      */
-    public function cuentas()
+    public function accounts()
     {
-        return $this->hasMany(Cuenta::class);
+        return $this->hasMany(Account::class);
     }
 }

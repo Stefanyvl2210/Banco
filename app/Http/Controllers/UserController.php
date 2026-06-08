@@ -2,112 +2,70 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Cuenta;
+use App\Http\Requests\Auth\RegisterUserRequest;
+use App\Http\Requests\Auth\UpdateProfileRequest;
+use App\Http\Resources\UserResource;
 use App\Models\User;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Validator;
+use App\Services\Banking\BankingService;
 
 class UserController extends Controller
 {
+    private $bankingService = null;
+
+    public function __construct(BankingService $bankingService)
+    {
+        $this->bankingService = $bankingService;
+    }
+
     /**
-     * Display a listing of the resource.
+     * Display a listing of the authenticated user's profile and accounts.
      *
      * @return \Illuminate\Http\Response
      */
     public function index()
     {
-        $allUsers = User::all();
-        foreach ($allUsers as $user) {
-            $account = $user->cuentas;
-        }
         return response()->json( [
-            'data' => $allUsers
+            'data' => UserResource::collection(User::with('accounts')->latest()->get()),
         ], 200);
     }
 
     /**
-     * Store a newly created resource in storage.
+     * Create a new user.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\JsonResponse
      */
-    public function store(Request $request)
+    public function store(RegisterUserRequest $request)
     {
-        $data = $request->all();
-        $data['tipo_cuenta'] = isset($data['tipo_cuenta']) ? strtolower($data['tipo_cuenta']) : null;
-
-        $validator = Validator::make($data, [
-            'first_name' => 'required|string',
-            'last_name' => 'required|string',
-            'telefono' => 'sometimes|string',
-            'email' => 'required|string|unique:users',
-            'password' => 'required|string',
-            'tipo_cuenta' => 'required|string|in:corriente,ahorros',
-        ]);
- 
-        if ($validator->fails()) {
-            return response()->json([
-                'messages' => $validator->errors()->all(),
-                'error_code' => 422
-            ], 422 );
-        }
-
-        try {
-            $data['password'] = Hash::make($data['password']);
-            do {
-                $numAccount = mt_rand(501878200000000,501878200099999);
-                $accountExists = Cuenta::where('num_cuenta', $numAccount)->count();
-
-            } while($accountExists);
-
-            $newUser = User::create($data);
-            $dataAccount = [
-                'user_id' => $newUser['id'],
-                'num_cuenta' => $numAccount,
-                'tipo' => $data['tipo_cuenta'],
-                'saldo' => 0
-            ];
-
-            $newAccount = Cuenta::create($dataAccount);
-            $response = array_merge($data, $dataAccount);
-
-        } catch (\Throwable $e) {
-            return response($e, 500);
-        }
+        $newUser = $this->bankingService->registerUser($request->validated());
+        $newUser->load('accounts');
 
         return response()->json([
-            'message' => 'Usuario creado con exito',
-            'data' => $response,
-            'token' => $newUser->createToken("API TOKEN")->plainTextToken
+            'message' => 'User created successfully',
+            'data' => new UserResource($newUser),
+            'token' => $newUser->createToken('API TOKEN')->plainTextToken,
+        ], 201);
+    }
+
+    /**
+    * Update the authenticated user's profile information.
+    *
+    * @param  \Illuminate\Http\Request  $request
+    * @return \Illuminate\Http\JsonResponse
+    */
+    public function updateProfile(UpdateProfileRequest $request)
+    {
+        $user = auth()->user();
+        $user->update($request->validated());
+
+        return response()->json([
+            'message' => 'Profile updated successfully',
+            'data' => new UserResource($user->load('accounts')),
         ], 200);
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
-    public function show(User $user)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, User $user)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
+     * Remove the specified user from storage. Only non-admin users can be deleted, and admins cannot delete their own user through this endpoint.
      *
      * @param int $id
      * @return \Illuminate\Http\JsonResponse
@@ -115,19 +73,32 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = User::find($id);
-        if(!$user)
-            return response()->json(['Error' => "Persona con id ". $id ." no existe."], 404);
 
-        try {
-            $delete = $user->delete();
-        } catch (\Throwable $e) {
-            return response()->json($e, 500);
+        if (!$user) {
+            return response()->json([
+                'message' => 'User not found.',
+            ], 404);
         }
+
+        if ((int) $user->id === (int) auth()->id()) {
+            return response()->json([
+                'message' => 'Admins cannot delete their own user through this endpoint.',
+            ], 422);
+        }
+
+        if ($user->isAdmin()) {
+            return response()->json([
+                'message' => 'Admin users cannot be deleted through this endpoint.',
+            ], 422);
+        }
+
+        $user->tokens()->delete();
+        $user->delete();
 
         return response()->json([
             'data' => [
-                'message' => 'Persona con id '.$id.' fue eliminada con exito.'
-            ]
+                'message' => 'User with id '.$id.' was deleted successfully.',
+            ],
         ], 200);
     }
 }

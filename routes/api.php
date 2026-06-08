@@ -1,10 +1,9 @@
 <?php
 
-use App\Http\Controllers\CuentaController;
-use App\Http\Controllers\TransaccionController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\Auth\AuthenticateUserController;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,30 +17,33 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-// Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//     return $request->user();
-// });
-
-// Auth router
+// Public auth routes.
 Route::post('/login', [AuthenticateUserController::class, 'store']);
-
-
-//Users routes
-Route::get('/users', [UserController::class, 'index']);
+Route::post('/register', [UserController::class, 'store']);
 Route::post('/user', [UserController::class, 'store']);
-Route::put('/user/{id}', [UserController::class, 'update']);
-Route::delete('/user/{id}', [UserController::class, 'destroy']);
 
-//Cuenta routes
-Route::get('/cuentas', [CuentaController::class, 'index']);
-Route::post('/cuenta', [CuentaController::class, 'store']);
-Route::put('/cuenta/{id}', [CuentaController::class, 'update']);
-Route::delete('/cuenta/{id}', [CuentaController::class, 'destroy']);
+// Protected routes that require authentication.
+Route::middleware('auth:sanctum')->group(function () {
+    // User profile and session management routes.
+    Route::get('/me', [AuthenticateUserController::class, 'me']);
+    Route::patch('/me', [UserController::class, 'updateProfile']);
+    Route::post('/logout', [AuthenticateUserController::class, 'destroy']);
 
-//Transacciones routes
-Route::get('/transacciones', [TransaccionController::class, 'index']);
-Route::post('/transaccion', [TransaccionController::class, 'store']);
-Route::put('/deposit', [TransaccionController::class, 'deposit']);
-Route::put('/withdrawal', [TransaccionController::class, 'withdrawal']);
-Route::put('/transaccion/{id}', [TransaccionController::class, 'update']);
-Route::delete('/transaccion/{id}', [TransaccionController::class, 'destroy']);
+    // User management routes (admin only).
+    Route::middleware('admin')->group(function () {
+        Route::get('/users', [UserController::class, 'index']);
+        Route::delete('/user/{id}', [UserController::class, 'destroy']);
+    });
+
+    // Account management routes.
+    Route::get('/accounts', [AccountController::class, 'index']);
+    Route::post('/account', [AccountController::class, 'store']);
+    Route::get('/account/{account}', [AccountController::class, 'show']);
+    Route::delete('/account/{account}', [AccountController::class, 'destroy']);
+
+    // Transaction management routes.
+    Route::get('/transactions', [TransactionController::class, 'index']);
+    Route::post('/transaction', [TransactionController::class, 'store']);
+    Route::put('/deposit', [TransactionController::class, 'deposit']);
+    Route::put('/withdrawal', [TransactionController::class, 'withdrawal']);
+});

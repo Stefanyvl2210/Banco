@@ -1,64 +1,281 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400"></a></p>
+# Bank API
 
-<p align="center">
-<a href="https://travis-ci.org/laravel/framework"><img src="https://travis-ci.org/laravel/framework.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Basic banking API built with Laravel 8 and Laravel Sanctum. It supports user registration, token authentication, account management, deposits, withdrawals, transfers, and transaction history.
 
-## About Laravel
+## Requirements
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- PHP 7.3 or higher compatible with Laravel 8. PHP 8.2 is recommended for this project lock file.
+- Composer.
+- MySQL/MariaDB for local development.
+- Common Laravel PHP extensions: `openssl`, `pdo`, `pdo_mysql`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `fileinfo`, `zip`, and `bcmath` if available.
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Installation
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+```bash
+composer install
+copy .env.example .env
+php artisan key:generate
+```
 
-## Learning Laravel
+Configure the database in `.env`:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=banco
+DB_USERNAME=root
+DB_PASSWORD=
+```
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains over 1500 video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+Create the database with UTF-8 support:
 
-## Laravel Sponsors
+```sql
+CREATE DATABASE banco
+CHARACTER SET utf8mb4
+COLLATE utf8mb4_unicode_ci;
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the Laravel [Patreon page](https://patreon.com/taylorotwell).
+Run migrations:
 
-### Premium Partners
+```bash
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Cubet Techno Labs](https://cubettech.com)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[Many](https://www.many.co.uk)**
-- **[Webdock, Fast VPS Hosting](https://www.webdock.io/en)**
-- **[DevSquad](https://devsquad.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[OP.GG](https://op.gg)**
-- **[WebReinvent](https://webreinvent.com/?utm_source=laravel&utm_medium=github&utm_campaign=patreon-sponsors)**
-- **[Lendio](https://lendio.com)**
+Create the admin user from the credentials defined in `.env`:
 
-## Contributing
+```env
+ADMIN_FIRST_NAME=System
+ADMIN_LAST_NAME=Admin
+ADMIN_PHONE=
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=change-this-password
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+`ADMIN_EMAIL` and `ADMIN_PASSWORD` are required when running the database seeder. Use a strong password and do not commit real production credentials.
 
-## Code of Conduct
+Then run:
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+php artisan db:seed
+```
 
-## Security Vulnerabilities
+If you already have a test database with an old schema, reset it with:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+php artisan migrate:fresh
+php artisan db:seed
+```
 
-## License
+## Running The Project
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Start the Laravel development server:
+
+```bash
+php artisan serve
+```
+
+The API will be available at:
+
+```text
+http://127.0.0.1:8000/api
+```
+
+If you use Laragon, you can also open the local host generated by Laragon and consume endpoints under `/api`.
+
+## Swagger / Interactive Documentation
+
+The project includes a static OpenAPI specification at:
+
+```text
+public/docs/openapi.json
+```
+
+Swagger UI is available at:
+
+```text
+http://127.0.0.1:8000/api-docs
+```
+
+The Swagger page loads Swagger UI from a CDN. If you do not have internet access, the OpenAPI JSON is still available at `/docs/openapi.json`.
+
+## Authentication
+
+Registration and login return a Sanctum token. Send it to protected endpoints with:
+
+```http
+Authorization: Bearer YOUR_TOKEN
+Accept: application/json
+```
+
+## Main Endpoints
+
+### Register
+
+```http
+POST /api/register
+```
+
+```json
+{
+  "first_name": "Ana",
+  "last_name": "Perez",
+  "phone": "04141234567",
+  "email": "ana@example.com",
+  "password": "password123",
+  "account_type": "savings"
+}
+```
+
+`POST /api/user` is still kept as a compatibility alias.
+
+### Login
+
+```http
+POST /api/login
+```
+
+```json
+{
+  "email": "ana@example.com",
+  "password": "password123"
+}
+```
+
+### Authenticated User
+
+```http
+GET /api/me
+PATCH /api/me
+POST /api/logout
+```
+
+Admin-only user endpoints:
+
+```http
+GET /api/users
+DELETE /api/user/{id}
+```
+
+These endpoints require a Sanctum token from a user with `role = admin`.
+Admins can list users and delete customer users. Admin users cannot delete themselves or other admin users through this endpoint.
+
+Update the authenticated user's basic profile:
+
+```json
+{
+  "first_name": "Andrea",
+  "last_name": "Lopez",
+  "phone": "04147654321"
+}
+```
+
+### Accounts
+
+```http
+GET /api/accounts
+POST /api/account
+GET /api/account/{account}
+DELETE /api/account/{account}
+```
+
+Create an additional account:
+
+```json
+{
+  "account_type": "checking"
+}
+```
+
+You can only view and operate your own accounts. An account can only be closed when its balance is `0.00`.
+
+### Deposit
+
+```http
+PUT /api/deposit
+```
+
+```json
+{
+  "account_number": "501878200000001",
+  "account_type": "savings",
+  "amount": "100.00"
+}
+```
+
+### Withdrawal
+
+```http
+PUT /api/withdrawal
+```
+
+```json
+{
+  "account_number": "501878200000001",
+  "account_type": "savings",
+  "amount": "25.50"
+}
+```
+
+Withdrawals are rejected when the account has insufficient balance.
+
+### Transfer
+
+```http
+POST /api/transaction
+```
+
+```json
+{
+  "source_account_number": "501878200000001",
+  "destination_account_number": "501878200000002",
+  "amount": "10.00",
+  "transaction_type": "transfer"
+}
+```
+
+The source account must belong to the authenticated user. The destination account can belong to another user.
+
+### History
+
+```http
+GET /api/transactions
+```
+
+Returns transactions related to the authenticated user's accounts.
+
+## Implemented Rules
+
+- Banking routes are protected with `auth:sanctum`.
+- `GET /api/users` and `DELETE /api/user/{id}` require an admin user.
+- Personal Sanctum tokens are used for API clients.
+- Users have a `role` field: `customer` or `admin`.
+- Balances and amounts use `decimal(15, 2)` in the database.
+- Money operations run inside `DB::transaction()`.
+- Account rows are locked with `lockForUpdate()` before balance changes.
+- Account ownership is validated before deposits, withdrawals, and transfers.
+- Withdrawals and transfers reject insufficient balance.
+- Transactions cannot be updated or deleted through the API.
+
+## Tests
+
+Tests use in-memory SQLite configured in `phpunit.xml`.
+
+```bash
+php artisan test
+```
+
+Current coverage:
+
+- Registration with account creation and token generation.
+- Protected routes require authentication.
+- Admin-only routes reject customer users.
+- Admin users can list users and delete customer users.
+- Authenticated profile update.
+- Deposit, withdrawal, and transfer.
+- Users cannot operate another user's account.
+- Withdrawals reject insufficient balance.
+
+## Security Notes
+
+This version is a functional base, not a production-ready banking platform. A production banking system would still need full audit trails, operational limits, idempotency keys, fraud checks, alerts, KYC, sensitive data encryption, monitoring, role policies, infrastructure hardening, backups, and compliance review.
