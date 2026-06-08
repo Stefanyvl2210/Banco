@@ -32,7 +32,9 @@ RUN php artisan package:discover --ansi \
 
 EXPOSE 8080
 
-CMD php artisan optimize:clear \
+CMD php artisan migrate --force \
+    && php artisan db:seed --force \
+    && php artisan optimize:clear \
     && php artisan config:cache \
     && php artisan view:cache \
     && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}

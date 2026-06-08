@@ -28,5 +28,7 @@ class AdminUserSeeder extends Seeder
                 'role' => 'admin',
             ]
         );
+
+        $this->command?->info('Admin user ready: '.$email);
     }
 }

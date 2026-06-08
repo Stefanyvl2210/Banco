@@ -11,6 +11,7 @@ Basic banking API built with Laravel 8 and Laravel Sanctum. It supports user reg
 
 Railway uses the root `Dockerfile` to build the service with PHP `8.2.31`, bypassing Railpack PHP auto-detection.
 The container starts Laravel with `php artisan serve` on Railway's `$PORT`.
+On container startup it also runs `php artisan migrate --force` and `php artisan db:seed --force`; `AdminUserSeeder` is idempotent and creates or updates the admin user from the `ADMIN_*` environment variables.
 
 ## Installation
 
