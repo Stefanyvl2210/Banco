@@ -16,3 +16,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     return view('docs.api');
 });
+
+Route::get('/api-docs', function () {
+    return view('docs.api');
+});

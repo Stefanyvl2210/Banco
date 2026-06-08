@@ -16,14 +16,24 @@
     <div id="swagger-ui"></div>
     <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
     <script>
-        window.ui = SwaggerUIBundle({
-            url: '/docs/openapi.json',
-            dom_id: '#swagger-ui',
-            presets: [
-                SwaggerUIBundle.presets.apis,
-            ],
-            layout: 'BaseLayout',
-        });
+        fetch('/docs/openapi.json')
+            .then((response) => response.json())
+            .then((spec) => {
+                spec.servers = [
+                    {
+                        url: `${window.location.origin}/api`,
+                    },
+                ];
+
+                window.ui = SwaggerUIBundle({
+                    spec,
+                    dom_id: '#swagger-ui',
+                    presets: [
+                        SwaggerUIBundle.presets.apis,
+                    ],
+                    layout: 'BaseLayout',
+                });
+            });
     </script>
 </body>
 </html>
