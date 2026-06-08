@@ -28,6 +28,15 @@
                 window.ui = SwaggerUIBundle({
                     spec,
                     dom_id: '#swagger-ui',
+                    requestInterceptor: (request) => {
+                        request.headers.Accept = 'application/json';
+
+                        if (request.body) {
+                            request.headers['Content-Type'] = 'application/json';
+                        }
+
+                        return request;
+                    },
                     presets: [
                         SwaggerUIBundle.presets.apis,
                     ],
