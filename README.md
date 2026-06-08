@@ -10,6 +10,7 @@ Basic banking API built with Laravel 8 and Laravel Sanctum. It supports user reg
 - Common Laravel PHP extensions: `openssl`, `pdo`, `pdo_mysql`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `fileinfo`, `zip`, and `bcmath` if available.
 
 Railway uses the root `Dockerfile` to build the service with PHP `8.2.31`, bypassing Railpack PHP auto-detection.
+The container starts Laravel with `php artisan serve` on Railway's `$PORT`.
 
 ## Installation
 
