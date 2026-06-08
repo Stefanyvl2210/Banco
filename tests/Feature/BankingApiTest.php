@@ -46,6 +46,17 @@ class BankingApiTest extends TestCase
         ]);
     }
 
+    public function test_api_validation_errors_return_json_without_accept_header()
+    {
+        $payload = $this->userPayload();
+        $payload['password'] = '1234';
+
+        $this->post('/api/register', $payload)
+            ->assertUnprocessable()
+            ->assertHeader('content-type', 'application/json')
+            ->assertJsonValidationErrors('password');
+    }
+
     public function test_protected_routes_require_authentication()
     {
         $this->getJson('/api/accounts')->assertUnauthorized();
