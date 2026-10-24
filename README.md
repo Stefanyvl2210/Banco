@@ -13,6 +13,13 @@ Railway uses the root `Dockerfile` to build the service with PHP `8.2.35`, bypas
 The container starts Laravel with `php artisan serve` on Railway's `$PORT`.
 On container startup it also runs `php artisan migrate --force` and `php artisan db:seed --force`; `AdminUserSeeder` is idempotent and creates or updates the admin user from the `ADMIN_*` environment variables.
 
+To fit Railway's Free plan, the service can run without a separate MySQL service by storing a SQLite database on a Railway volume:
+
+1. Attach a volume to the service mounted at `/data`.
+2. Set `DB_CONNECTION=sqlite` and `DB_DATABASE=/data/database.sqlite`, and remove the `DB_HOST`, `DB_PORT`, `DB_USERNAME` and `DB_PASSWORD` variables.
+3. Leave the pre-deploy command empty; migrations and seeders run when the container starts. The SQLite file is created on first start if it does not exist.
+4. Optionally enable Serverless so the service sleeps when idle. The first request after sleeping is slower.
+
 ## Installation
 
 ```bash

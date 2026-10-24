@@ -32,7 +32,8 @@ RUN php artisan package:discover --ansi \
 
 EXPOSE 8080
 
-CMD php artisan migrate --force \
+CMD if [ "${DB_CONNECTION}" = "sqlite" ]; then mkdir -p "$(dirname "${DB_DATABASE}")" && touch "${DB_DATABASE}"; fi \
+    && php artisan migrate --force \
     && php artisan db:seed --force \
     && php artisan optimize:clear \
     && php artisan config:cache \
