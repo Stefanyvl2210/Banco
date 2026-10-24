@@ -60,6 +60,7 @@ class BankingApiTest extends TestCase
     public function test_protected_routes_require_authentication()
     {
         $this->getJson('/api/accounts')->assertUnauthorized();
+        $this->get('/api/accounts')->assertUnauthorized();
     }
 
     public function test_users_endpoint_requires_admin_role()

@@ -1,15 +1,15 @@
 # Bank API
 
-Basic banking API built with Laravel 8 and Laravel Sanctum. It supports user registration, token authentication, account management, deposits, withdrawals, transfers, and transaction history.
+Basic banking API built with Laravel 13 and Laravel Sanctum. It supports user registration, token authentication, account management, deposits, withdrawals, transfers, and transaction history.
 
 ## Requirements
 
-- PHP 8.2. The deploy target is pinned to PHP 8.2 because the current Laravel 8 lock file includes dependencies that do not support PHP 8.3+.
+- PHP 8.3 or newer.
 - Composer.
-- MySQL/MariaDB for local development.
+- MySQL/MariaDB or SQLite.
 - Common Laravel PHP extensions: `openssl`, `pdo`, `pdo_mysql`, `mbstring`, `tokenizer`, `xml`, `ctype`, `json`, `curl`, `fileinfo`, `zip`, and `bcmath` if available.
 
-Railway uses the root `Dockerfile` to build the service with PHP `8.2.35`, bypassing Railpack PHP auto-detection.
+Railway uses the root `Dockerfile` to build the service with PHP `8.3.36`, bypassing Railpack PHP auto-detection.
 The container starts Laravel with `php artisan serve` on Railway's `$PORT`.
 On container startup it also runs `php artisan migrate --force` and `php artisan db:seed --force`; `AdminUserSeeder` is idempotent and creates or updates the admin user from the `ADMIN_*` environment variables.
 
